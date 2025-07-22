@@ -1,10 +1,32 @@
 <% layout("/layouts/boilerplate") %>
 
 <style>
-  #filters {
+  .filters-container {
+    width: 70%;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on mobile */
+    padding: 10px;
+    gap: 10px; /* spacing between icons */
+    scrollbar-width: none; /* for Firefox */
+    flex-shrink: 1;
+  }
+
+  .filters-container::-webkit-scrollbar {
+    display: none; /* hide scrollbar in Chrome/Safari */
+  }
+
+
+  #filters {
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    position: relative;
     align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
   }
 
   .filter {
@@ -12,6 +34,8 @@
     margin-right: 2rem;
     margin-top: 2rem;
     opacity: 0.7;
+    flex: 0 0 auto; /* prevent shrinking */
+    font-size: 0.9rem;
   }
 
   .filter:hover {
@@ -27,17 +51,28 @@
     display: none;
   }
 
+
   .tax-toggle {
-    border: 1px solid black;
-    border-radius: 1rem;
-    height: 3rem;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
+  border: 1px solid black;
+  border-radius: 1rem;
+  padding: 0.5rem 1rem;
+  display: inline-block;
+}
+
+
+  @media (max-width: 1500px) {
+    .filters-container {
+      width: 100%;
+    }
+
+    .tax-toggle {
+      display: none !important;
+    }
   }
 </style>
 
-    <div id="filters">
+<div id="filters"> 
+    <div class="filters-container">
       <div class="filter">
         <div><i class="fa-solid fa-fire"></i></div>
         <p>Trending</p>
@@ -85,46 +120,35 @@
       <div class="filter">
         <div><i class="fa-solid fa-hot-tub-person"></i></div>
         <p>Hot Tub</p>
-      </div>
-<!--      <div class="filter">
-        <div><i class="fa-solid fa-elevator"></i></div>
-        <p>Elevator </p>
-      </div>
-      <div class="filter">
-        <div><i class="fa-solid fa-square-parking"></i></div>
-        <p>Free Parking</p>
-      </div>
-      <div class="filter">
-        <div><i class="fa-solid fa-dog"></i></div>
-        <p>Pet Friendly</p>
-      </div> -->
+      </div>      
+    </div>
 
-      <div class="tax-toggle">
-        <div class="form-check-reverse form-switch">
-          <input class="form-check-input" type="checkbox" role="switch" id="flexswitchCheckDefault">
-          <label class="form-check-label" for="switchCheckDefault">Display total after taxes</label>
-        </div>
+    <div class="tax-toggle d-none d-md-block">
+      <div class="form-check-reverse form-switch">
+        <label class="form-check-label" for="switchCheckDefault">Display total after taxes</label>
+        <input class="form-check-input" type="checkbox" role="switch" id="flexswitchCheckDefault">
       </div>
     </div>
+
+  </div>
 
     <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3"> <!-- display in 3 colomns format -->
       <% for(let listing of allListings) { %>
         <a href="/listings/<%= listing._id %>" class="listing-link">
-      <div class="card listing-card">
-        <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 20rem;"/> <!-- height of all images will be same by setting a fixed height -->
-    
-        <div class="card-img-overlay"></div>
-        <div class="card-body">
-           <p class="card-text"><b> <%= listing.title %>  </b>
-          <br>
-           <strong>Price:</strong> &#8377 <%= listing.price.toLocaleString("en-IN") %> / night
-           <i class="tax-info"> &nbsp; +18% GST</i>
-           </p>
-        </div>
+          <div class="card listing-card" data-location="<%= listing.location.toLowerCase() %>">
+            <img src="<%= listing.image.url %>" class="card-img-top" alt="listing_image" style="height: 20rem;"/> <!-- height of all images will be same by setting a fixed height -->
+            <div class="card-img-overlay"></div>
+            <div class="card-body">
+              <p class="card-text"><b> <%= listing.title %>  </b>
+                <br>
+                <strong>Price:</strong> &#8377 <%= listing.price.toLocaleString("en-IN") %> / night
+                <i class="tax-info"> &nbsp; +18% GST</i>
+              </p> 
+            </div>
+          </div>
+        </a>
+      <% } %>
     </div>
-    <% } %>
-  </div>
-</a>
 
 
 <script>
@@ -139,4 +163,57 @@
       }
     }
   });
+
+  // Location search logic
+
+  const searchInput = document.getElementById("searchInput");
+  const listings = document.querySelectorAll(".listing-card");
+  const dropdown = document.getElementById("locationDropdown");
+
+  searchInput.addEventListener("input", () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    listings.forEach(card => {
+      const location = card.getAttribute("data-location");
+      if (location.includes(searchTerm)) {
+        card.parentElement.style.display = "block";
+      } else {
+        card.parentElement.style.display = "none";
+      }
+    });
+  });
+
+  
+// Location filter logic
+searchInput.addEventListener("input", () => {
+  const searchTerm = searchInput.value.toLowerCase();
+  listings.forEach(card => {
+    const location = card.getAttribute("data-location")?.toLowerCase() || "";
+    if (location.includes(searchTerm)) {
+      card.parentElement.style.display = "block";
+    } else {
+      card.parentElement.style.display = "none";
+    }
+  });
+});
+
+// Dropdown logic
+
+function showDropdown() {
+  dropdown.style.display = "block";
+}
+
+function hideDropdownDelayed() {
+  setTimeout(() => {
+    dropdown.style.display = "none";
+  }, 200);
+}
+
+function selectLocation(location) {
+  searchInput.value = location;
+  dropdown.style.display = "none";
+
+  const event = new Event('input');
+  searchInput.dispatchEvent(event);
+}
+
 </script>

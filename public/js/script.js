@@ -21,3 +21,18 @@
   });
 })();
 // this code taken from bootstrap documentation to validate forms.
+
+document.addEventListener("DOMContentLoaded", () => {
+  const navbarCollapse = document.getElementById("navbarNavAltMarkup");
+  const pageContent = document.querySelector(".page-content");
+
+  if (navbarCollapse && pageContent) {
+    navbarCollapse.addEventListener("shown.bs.collapse", () => {
+      pageContent.classList.add("shifted-down");
+    });
+
+    navbarCollapse.addEventListener("hidden.bs.collapse", () => {
+      pageContent.classList.remove("shifted-down");
+    });
+  }
+});
